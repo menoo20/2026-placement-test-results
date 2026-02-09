@@ -52,11 +52,10 @@
         }
 
         header {
-            padding: 2rem;
+            padding: 2rem 1rem;
             text-align: center;
             background: linear-gradient(to right, var(--bg-color), #1e1b4b);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            position: relative;
         }
 
         h1 {
@@ -68,7 +67,32 @@
             margin-bottom: 0.5rem;
         }
 
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
 
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
 
         .subtitle {
             color: var(--text-secondary);
@@ -92,20 +116,37 @@
             margin-left: 0.5rem;
         }
 
-        .back-link {
-            position: absolute;
-            top: 2rem;
-            left: 2rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: color 0.3s;
-        }
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
 
-        .back-link:hover {
-            color: var(--text-primary);
+            .nav-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            nav {
+                flex-wrap: wrap;
+            }
+
+            button.tab-btn {
+                font-size: 0.9rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-row {
+                flex-direction: column;
+            }
+
+            main {
+                padding: 0 1rem 1rem;
+            }
         }
 
         /* Navigation Tabs */
@@ -354,9 +395,14 @@
 <body>
 
     <header>
-        <a href="index.html" class="back-link">
-            <span>&larr;</span> Home
-        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">
+                <span>&larr;</span> Home
+            </a>
+            <a href="dashboard_ameen.html" class="nav-link">
+                Mohammed's Dashboard <span>&rarr;</span>
+            </a>
+        </div>
         <h1>Mostafa's Student Performance Analytics</h1>
         <div class="header-stats" style="margin-bottom: 1rem;">
             Total Students: <span id="headerTotalStudents" class="header-count">--</span>

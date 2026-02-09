@@ -52,10 +52,11 @@
         }
 
         header {
-            padding: 2rem;
+            padding: 2rem 1rem;
             text-align: center;
             background: linear-gradient(to right, var(--bg-color), #1e1b4b);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
         }
 
         h1 {
@@ -67,13 +68,18 @@
             margin-bottom: 0.5rem;
         }
 
-        .mostafa-link {
-            position: absolute;
-            top: 2rem;
-            right: 2rem;
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
             color: var(--text-secondary);
             text-decoration: none;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
             transition: color 0.3s;
@@ -84,7 +90,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .mostafa-link:hover {
+        .nav-link:hover {
             color: var(--text-primary);
             background: rgba(255, 255, 255, 0.1);
         }
@@ -109,6 +115,39 @@
             font-weight: bold;
             font-size: 1.1rem;
             margin-left: 0.5rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            nav {
+                flex-wrap: wrap;
+            }
+
+            button.tab-btn {
+                font-size: 0.9rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-row {
+                flex-direction: column;
+            }
+
+            main {
+                padding: 0 1rem 1rem;
+            }
         }
 
         /* Navigation Tabs */
@@ -357,16 +396,18 @@
 <body>
 
     <header>
-        <a href="index.html" class="mostafa-link" style="left: 2rem; right: auto;">
-            <span>&larr;</span> Home
-        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">
+                <span>&larr;</span> Home
+            </a>
+            <a href="dashboard_mostafa.html" class="nav-link">
+                Mostafa's Dashboard <span>&rarr;</span>
+            </a>
+        </div>
         <h1>Mohammed Ameen's Student Analytics</h1>
         <div class="header-stats" style="margin-bottom: 1rem;">
             Total Students: <span id="headerTotalStudents" class="header-count">--</span>
         </div>
-        <a href="dashboard_mostafa.html" class="mostafa-link">
-            Go to Mostafa's Dashboard <span>&rarr;</span>
-        </a>
         <p class="subtitle">Placement Test Analysis Dashboard</p>
     </header>
 
