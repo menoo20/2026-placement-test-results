@@ -390,6 +390,192 @@
             font-size: 0.9rem;
             color: var(--text-secondary);
         }
+
+        /* Student Detail Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .modal-header h2 {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-summary {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .modal-stat {
+            flex: 1;
+            min-width: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .modal-stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-p);
+        }
+
+        .modal-stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .topic-grid {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .topic-row {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1rem;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .topic-name {
+            flex: 1;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .topic-score {
+            font-weight: 600;
+            color: var(--accent-s);
+        }
+
+        .topic-bar {
+            flex: 1;
+            max-width: 150px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .topic-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent-p), var(--accent-s));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .hint-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-p);
+        }
+
+        .clickable-name {
+            cursor: pointer;
+            color: var(--accent-p);
+            transition: color 0.2s;
+        }
+
+        .clickable-name:hover {
+            color: var(--accent-s);
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .modal-summary {
+                flex-direction: column;
+            }
+
+            .topic-row {
+                flex-wrap: wrap;
+            }
+
+            .topic-bar {
+                max-width: 100%;
+                width: 100%;
+                order: 3;
+            }
+        }
     </style>
 </head>
 
@@ -427,6 +613,9 @@
                     <button onclick="resetFilters()"
                         style="padding:0.5rem 1rem; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:var(--accent-p); cursor:pointer;">Reset
                         Filters</button>
+                </div>
+                <div class="hint-text">
+                    💡 <strong>Tip:</strong> Click on any student's name to view their detailed topic breakdown.
                 </div>
                 <div class="table-container">
                     <table id="studentTable">
@@ -588,6 +777,36 @@
         </div>
     </main>
 
+    <!-- Student Detail Modal -->
+    <div id="studentModal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="modalStudentName">Student Name</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-summary">
+                    <div class="modal-stat">
+                        <div class="modal-stat-value" id="modalAccuracy">--</div>
+                        <div class="modal-stat-label">Accuracy</div>
+                    </div>
+                    <div class="modal-stat">
+                        <div class="modal-stat-value" id="modalLevel">--</div>
+                        <div class="modal-stat-label">Level</div>
+                    </div>
+                    <div class="modal-stat">
+                        <div class="modal-stat-value" id="modalTotal">--</div>
+                        <div class="modal-stat-label">Total Questions</div>
+                    </div>
+                </div>
+                <h3 style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 1rem;">Topic Breakdown</h3>
+                <div id="modalTopics" class="topic-grid">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Data Source -->
     <script src="dashboard_data.js"></script> <!-- Defines const studentData -->
 
@@ -700,10 +919,10 @@
                 return;
             }
 
-            data.forEach(s => {
+            data.forEach((s, index) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${s.Name}</td>
+                    <td><span class="clickable-name" onclick="openModal(${index})">${s.Name}</span></td>
                     <td>${s.Accuracy}%</td>
                     <td><span class="level-badge lvl-${s.Level}">Level ${s.Level}</span></td>
                 `;
@@ -711,6 +930,63 @@
             });
             document.getElementById('countDisplay').innerText = data.length;
         }
+
+        // --- Modal Functions ---
+        function openModal(index) {
+            const student = filteredData[index];
+            if (!student) return;
+
+            document.getElementById('modalStudentName').innerText = student.Name;
+            document.getElementById('modalAccuracy').innerText = student.Accuracy + '%';
+            document.getElementById('modalLevel').innerText = 'Level ' + student.Level;
+
+            // Calculate total questions
+            let totalQ = 0;
+            if (student.Topics) {
+                Object.values(student.Topics).forEach(t => totalQ += t.Total);
+            }
+            document.getElementById('modalTotal').innerText = totalQ;
+
+            // Build topic breakdown
+            const topicsContainer = document.getElementById('modalTopics');
+            topicsContainer.innerHTML = '';
+
+            const topicOrder = ["Simple MCQ", "Verb to Be", "Tenses", "Passive Voice", "Basic Vocabulary", "Advanced Vocabulary", "Advanced Grammar"];
+
+            if (student.Topics) {
+                topicOrder.forEach(topicName => {
+                    const stats = student.Topics[topicName];
+                    if (!stats) return;
+
+                    const percent = stats.Total > 0 ? Math.round((stats.Correct / stats.Total) * 100) : 0;
+
+                    const row = document.createElement('div');
+                    row.className = 'topic-row';
+                    row.innerHTML = `
+                        <span class="topic-name">${topicName}</span>
+                        <span class="topic-score">${stats.Correct}/${stats.Total}</span>
+                        <div class="topic-bar">
+                            <div class="topic-bar-fill" style="width: ${percent}%"></div>
+                        </div>
+                    `;
+                    topicsContainer.appendChild(row);
+                });
+            }
+
+            document.getElementById('studentModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('studentModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
 
         function renderStats(data) {
             document.getElementById('totalStudents').innerText = data.length;
