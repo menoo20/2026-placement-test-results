@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Analytics</title>
+    <!-- Use Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-p: #8b5cf6;
+            --accent-s: #ec4899;
+            --level-1: #ef4444;
+            /* Red */
+            --level-2: #f59e0b;
+            /* Orange */
+            --level-3: #3b82f6;
+            /* Blue */
+            --level-4: #22c55e;
+            /* Green */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism utility */
+        .glass {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        header {
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(to right, var(--bg-color), #1e1b4b);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, var(--accent-p), var(--accent-s));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .mostafa-link {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .mostafa-link:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .header-stats {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .header-count {
+            color: var(--accent-p);
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-left: 0.5rem;
+        }
+
+        /* Navigation Tabs */
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 0 1rem;
+        }
+
+        button.tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border-radius: 8px;
+        }
+
+        button.tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        button.tab-btn.active {
+            color: var(--text-primary);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        button.tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40%;
+            height: 3px;
+            background: var(--accent-p);
+            border-radius: 2px;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            padding: 0 2rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .tab-content {
+            display: none;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Table Styles */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 1rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            user-select: none;
+            position: relative;
+        }
+
+        /* Sort Arrows */
+        .sort-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sort-header:hover {
+            color: var(--text-primary);
+        }
+
+        .sort-icon {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            opacity: 0.3;
+        }
+
+        .sort-asc {
+            border-bottom: 5px solid currentColor;
+            margin-bottom: 2px;
+        }
+
+        .sort-desc {
+            border-top: 5px solid currentColor;
+            margin-top: 2px;
+        }
+
+        .sort-active {
+            opacity: 1;
+            color: var(--accent-p);
+        }
+
+        /* Filter Row Inputs */
+        .filter-row th {
+            padding: 0.5rem 1rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .filter-input {
+            width: 100%;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--accent-p);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .level-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .lvl-1 {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .lvl-2 {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .lvl-3 {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .lvl-4 {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        /* Statistics Layout */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .chart-container {
+            padding: 1.5rem;
+            height: 400px;
+            position: relative;
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .kpi-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .kpi-card {
+            flex: 1;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0.5rem 0;
+        }
+
+        .kpi-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Student Performance Analytics</h1>
+        <div class="header-stats" style="margin-bottom: 1rem;">
+            Total Students: <span id="headerTotalStudents" class="header-count">--</span>
+        </div>
+        <a href="dashboard_mostafa.html" class="mostafa-link">
+            Go to Mostafa's Dashboard <span>&rarr;</span>
+        </a>
+        <p class="subtitle">Placement Test Analysis Dashboard</p>
+    </header>
+
+    <nav>
+        <button class="tab-btn active" onclick="switchTab('tab-data')">Student List</button>
+        <button class="tab-btn" onclick="switchTab('tab-stats')">Statistics</button>
+        <button class="tab-btn" onclick="switchTab('tab-advanced')">Advanced Stats</button>
+        <button class="tab-btn" onclick="switchTab('tab-recommendations')">Recommendations</button>
+    </nav>
+
+    <main>
+        <!-- Tab 1: Data Table -->
+        <div id="tab-data" class="tab-content active glass">
+            <div style="padding: 1.5rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h2 class="chart-title" style="text-align:left; margin:0;">All Students</h2>
+                    <button onclick="resetFilters()"
+                        style="padding:0.5rem 1rem; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:var(--accent-p); cursor:pointer;">Reset
+                        Filters</button>
+                </div>
+                <div class="table-container">
+                    <table id="studentTable">
+                        <thead>
+                            <tr>
+                                <th onclick="handleSort('Name')">
+                                    <div class="sort-header">
+                                        Student Name
+                                        <span id="sort-Name" class="sort-icon sort-asc"></span>
+                                    </div>
+                                </th>
+                                <th onclick="handleSort('Accuracy')">
+                                    <div class="sort-header">
+                                        Accuracy
+                                        <span id="sort-Accuracy" class="sort-icon sort-desc"></span>
+                                    </div>
+                                </th>
+                                <th onclick="handleSort('Level')">
+                                    <div class="sort-header">
+                                        Level
+                                        <span id="sort-Level" class="sort-icon sort-desc"></span>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr class="filter-row">
+                                <th>
+                                    <input type="text" id="filterName" class="filter-input" placeholder="Search Name..."
+                                        onkeyup="filterData()">
+                                </th>
+                                <th>
+                                    <div style="display:flex; gap:0.5rem;">
+                                        <input type="number" id="filterAccMin" class="filter-input" placeholder="Min %"
+                                            onkeyup="filterData()" style="width:50%">
+                                        <input type="number" id="filterAccMax" class="filter-input" placeholder="Max %"
+                                            onkeyup="filterData()" style="width:50%">
+                                    </div>
+                                </th>
+                                <th>
+                                    <select id="filterLevel" class="filter-input" onchange="filterData()">
+                                        <option value="">All Levels</option>
+                                        <option value="1">Level 1</option>
+                                        <option value="2">Level 2</option>
+                                        <option value="3">Level 3</option>
+                                        <option value="4">Level 4</option>
+                                    </select>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination" style="text-align:center; padding:1rem; color:var(--text-secondary);">
+                    Showing <span id="countDisplay">0</span> students
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: General Stats -->
+        <div id="tab-stats" class="tab-content">
+            <div class="kpi-row">
+                <div class="kpi-card glass">
+                    <div class="kpi-label">Total Students</div>
+                    <div class="kpi-value" id="totalStudents">0</div>
+                </div>
+                <div class="kpi-card glass">
+                    <div class="kpi-label">Average Accuracy</div>
+                    <div class="kpi-value" id="avgAccuracy">0%</div>
+                </div>
+                <div class="kpi-card glass">
+                    <div class="kpi-label">Top Level 4</div>
+                    <div class="kpi-value" id="topLevelCount">0</div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="glass chart-container">
+                    <h3 class="chart-title">Level Distribution</h3>
+                    <canvas id="levelChart"></canvas>
+                </div>
+                <div class="glass chart-container">
+                    <h3 class="chart-title">Accuracy Spread</h3>
+                    <canvas id="accuracyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Advanced Stats -->
+        <div id="tab-advanced" class="tab-content">
+            <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                <!-- Radar Chart -->
+                <div class="glass chart-container">
+                    <h3 class="chart-title">Topic Mastery (Class Average)</h3>
+                    <p style="text-align:center; color:var(--text-secondary); margin-bottom:1rem; font-size:0.9rem;">
+                        Based on correct answers per topic.
+                    </p>
+                    <div style="height: 300px; position:relative;">
+                        <canvas id="topicRadarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Distribution List -->
+                <div class="glass chart-container" style="height:auto; min-height:300px;">
+                    <h3 class="chart-title">Exam Structure (Topic Distribution)</h3>
+                    <p style="text-align:center; color:var(--text-secondary); margin-bottom:1rem; font-size:0.9rem;">
+                        Questions per topic & % of Exam
+                    </p>
+                    <ul id="topicDistribution" style="list-style:none; padding:0 1rem;">
+                        <!-- Injected by JS -->
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tab 4: Recommendations -->
+        <div id="tab-recommendations" class="tab-content">
+            <div class="glass" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+                <h2 class="chart-title"
+                    style="color:var(--text-primary); text-align:left; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:1rem; margin-bottom:1.5rem;">
+                    Curriculum Recommendations
+                </h2>
+                <p style="color:var(--text-secondary); margin-bottom:1.5rem; font-style:italic;">
+                    "Here are my recommendations on the current curriculum based on my observations of the students'
+                    performance last week:"
+                </p>
+                <ul style="list-style: none; padding: 0;">
+                    <li
+                        style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid var(--accent-p);">
+                        <strong style="display:block; color:var(--accent-p); margin-bottom:0.5rem;">Too
+                            Condensed</strong>
+                        The current curriculum is <strong>5x more condensed</strong> than the students' abilities allow.
+                    </li>
+                    <li
+                        style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid var(--accent-s);">
+                        <strong style="display:block; color:var(--accent-s); margin-bottom:0.5rem;">Pacing
+                            Issue</strong>
+                        90% of the students couldn't grasp the "Family Unit" (or any unit) in a single day.
+                    </li>
+                    <li
+                        style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid var(--level-3);">
+                        <strong style="display:block; color:var(--level-3); margin-bottom:0.5rem;">Recommended
+                            Timeframe</strong>
+                        The minimum recommended time to teach a lesson is <strong>5 to 7 days</strong>. Students need
+                        repetition, drilling, and exercises, plus time for teachers to find, create, and customize the
+                        material needed to meet lesson objectives.
+                    </li>
+                    <li
+                        style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px; margin-bottom:1rem; border-left:4px solid var(--level-2);">
+                        <strong style="display:block; color:var(--level-2); margin-bottom:0.5rem;">Resource Support
+                            Needed</strong>
+                        A curriculum without material is very tedious for teachers. They should not be expected to work
+                        voluntarily on creating curriculum at home, as most teachers (like myself) work 10 hours a day.
+                        It would be helpful to find a way to provide ready-made material for them.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <!-- Data Source -->
+    <script src="dashboard_data.js"></script> <!-- Defines const studentData -->
+
+    <script>
+        // --- State ---
+        let currentSort = { key: 'Name', dir: 1 }; // 1 = ASC, -1 = DESC
+        let filteredData = [];
+
+        // --- Logic ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            const index = ['tab-data', 'tab-stats', 'tab-advanced', 'tab-recommendations'].indexOf(tabId);
+            document.querySelectorAll('.tab-btn')[index].classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof studentData === 'undefined') {
+                console.error("Data not loaded");
+                return;
+            }
+            // Initial Load
+            filteredData = [...studentData];
+            filterData(); // Applies default sort and renders
+
+            renderStats(studentData);
+            renderAdvanced(studentData);
+        });
+
+        // --- Filter & Sort ---
+        function filterData() {
+            const nameTerm = document.getElementById('filterName').value.toLowerCase();
+            const minAcc = parseInt(document.getElementById('filterAccMin').value) || 0;
+            const maxAcc = parseInt(document.getElementById('filterAccMax').value) || 100;
+            const levelVal = document.getElementById('filterLevel').value;
+
+            filteredData = studentData.filter(s => {
+                const matchName = s.Name.toLowerCase().includes(nameTerm);
+                const matchAcc = s.Accuracy >= minAcc && s.Accuracy <= maxAcc;
+                const matchLevel = levelVal === "" || s.Level.toString() === levelVal;
+                return matchName && matchAcc && matchLevel;
+            });
+
+            applySort(); // Sort the filtered list
+            renderTable(filteredData);
+        }
+
+        function handleSort(key) {
+            if (currentSort.key === key) {
+                currentSort.dir *= -1; // Toggle
+            } else {
+                currentSort.key = key;
+                currentSort.dir = 1; // Default ASC for new column
+                if (key === 'Accuracy' || key === 'Level') currentSort.dir = -1; // Default DESC for numbers
+            }
+            updateSortIcons();
+            applySort();
+            renderTable(filteredData);
+        }
+
+        function applySort() {
+            const key = currentSort.key;
+            const dir = currentSort.dir;
+
+            filteredData.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+        }
+
+        function updateSortIcons() {
+            // Reset all
+            ['Name', 'Accuracy', 'Level'].forEach(k => {
+                const icon = document.getElementById(`sort-${k}`);
+                icon.className = 'sort-icon'; // Reset to base
+                icon.parentElement.style.color = '';
+            });
+
+            // Set Active
+            const activeIcon = document.getElementById(`sort-${currentSort.key}`);
+            activeIcon.classList.add(currentSort.dir === 1 ? 'sort-asc' : 'sort-desc');
+            activeIcon.classList.add('sort-active');
+        }
+
+        function resetFilters() {
+            document.getElementById('filterName').value = '';
+            document.getElementById('filterAccMin').value = '';
+            document.getElementById('filterAccMax').value = '';
+            document.getElementById('filterLevel').value = '';
+            filterData();
+        }
+
+        // --- Render ---
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:2rem; color:var(--text-secondary);">No students found matching filters</td></tr>';
+                document.getElementById('countDisplay').innerText = 0;
+                return;
+            }
+
+            data.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s.Name}</td>
+                    <td>${s.Accuracy}%</td>
+                    <td><span class="level-badge lvl-${s.Level}">Level ${s.Level}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('countDisplay').innerText = data.length;
+        }
+
+        function renderStats(data) {
+            document.getElementById('totalStudents').innerText = data.length;
+            document.getElementById('headerTotalStudents').innerText = data.length;
+            const avg = data.reduce((sum, s) => sum + s.Accuracy, 0) / data.length;
+            document.getElementById('avgAccuracy').innerText = Math.round(avg) + '%';
+            document.getElementById('topLevelCount').innerText = data.filter(s => s.Level === 4).length;
+
+            const levels = [0, 0, 0, 0];
+            data.forEach(s => { if (s.Level >= 1 && s.Level <= 4) levels[s.Level - 1]++; });
+
+            new Chart(document.getElementById('levelChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Level 1', 'Level 2', 'Level 3', 'Level 4'],
+                    datasets: [{
+                        data: levels,
+                        backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { plugins: { legend: { position: 'right', labels: { color: '#94a3b8' } } } }
+            });
+
+            const bins = [0, 0, 0, 0, 0];
+            data.forEach(s => {
+                const idx = Math.min(Math.floor(s.Accuracy / 20), 4);
+                const cleanIdx = idx > 4 ? 4 : idx;
+                bins[cleanIdx]++;
+            });
+
+            new Chart(document.getElementById('accuracyChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['0-20%', '21-40%', '41-60%', '61-80%', '81-100%'],
+                    datasets: [{
+                        label: 'Students',
+                        data: bins,
+                        backgroundColor: '#8b5cf6',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderAdvanced(data) {
+            // Defined Order (7 Topics, ignoring Fast Response)
+            const topicOrder = [
+                "Simple MCQ", "Verb to Be", "Tenses",
+                "Passive Voice", "Basic Vocabulary", "Advanced Vocabulary", "Advanced Grammar"
+            ];
+
+            const topics = {};
+            // Initialize
+            topicOrder.forEach(t => { topics[t] = { totalQ: 0, totalC: 0 }; });
+
+            data.forEach(s => {
+                if (!s.Topics) return;
+                for (const [topic, stats] of Object.entries(s.Topics)) {
+                    if (!topics[topic]) topics[topic] = { totalQ: 0, totalC: 0 }; // Handle others if any
+                    topics[topic].totalQ += stats.Total;
+                    topics[topic].totalC += stats.Correct;
+                }
+            });
+
+            // Sort and Filter labels
+            const labels = Object.keys(topics).sort((a, b) => {
+                const idxA = topicOrder.indexOf(a);
+                const idxB = topicOrder.indexOf(b);
+                return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+            }).filter(l => topicOrder.includes(l)); // Strictly follow order and ignore others
+
+            const percentages = labels.map(l => {
+                const t = topics[l];
+                return t.totalQ > 0 ? Math.round((t.totalC / t.totalQ) * 100) : 0;
+            });
+
+            new Chart(document.getElementById('topicRadarChart'), {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Class Mastery %',
+                        data: percentages,
+                        backgroundColor: 'rgba(236, 72, 153, 0.2)',
+                        borderColor: '#ec4899',
+                        pointBackgroundColor: '#ec4899'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: '#f8fafc', font: { size: 12 } },
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    }
+                }
+            });
+
+            // --- Topic Distribution Logic ---
+            const distributionList = document.getElementById('topicDistribution');
+            if (distributionList && data.length > 0 && data[0].Topics) {
+                distributionList.innerHTML = '';
+
+                // Use first student to determine exam structure
+                // Iterate all students to find max total per topic to be safe against data gaps
+                const topicTotals = {};
+                let grandTotal = 0;
+
+                // Find max questions per topic across all students (robustness)
+                data.forEach(s => {
+                    if (!s.Topics) return;
+                    for (const [t, stats] of Object.entries(s.Topics)) {
+                        if (!topicTotals[t] || stats.Total > topicTotals[t]) {
+                            topicTotals[t] = stats.Total;
+                        }
+                    }
+                });
+
+                // Calculate grand total
+                Object.values(topicTotals).forEach(c => grandTotal += c);
+
+                // Convert to array and sort
+                const sortedTopics = Object.entries(topicTotals)
+                    .map(([name, count]) => ({ name, count }))
+                    .sort((a, b) => b.count - a.count);
+
+                sortedTopics.forEach(t => {
+                    const pct = grandTotal > 0 ? Math.round((t.count / grandTotal) * 100) : 0;
+
+                    const li = document.createElement('li');
+                    li.style.marginBottom = '1rem';
+                    li.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.95rem;">
+                            <span style="color:var(--text-primary); font-weight:500;">${t.name}</span>
+                            <span style="color:var(--accent-s); font-weight:bold;">${t.count} Qs <span style="color:var(--text-secondary); font-weight:normal; font-size:0.85rem;">(${pct}%)</span></span>
+                        </div>
+                        <div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+                            <div style="height:100%; width:${pct}%; background:linear-gradient(90deg, var(--accent-p), var(--accent-s)); border-radius:3px;"></div>
+                        </div>
+                    `;
+                    distributionList.appendChild(li);
+                });
+
+                // Add Total Summary
+                const summaryLi = document.createElement('li');
+                summaryLi.style.marginTop = '1.5rem';
+                summaryLi.style.paddingTop = '1rem';
+                summaryLi.style.borderTop = '1px solid rgba(255,255,255,0.1)';
+                summaryLi.style.textAlign = 'center';
+                summaryLi.innerHTML = `<span style="color:var(--text-secondary);">Total Exam Questions:</span> <strong style="color:var(--text-primary); font-size:1.1rem;">${grandTotal}</strong>`;
+                distributionList.appendChild(summaryLi);
+            }
+        }
+    </script>
+</body>
+
+</html>
